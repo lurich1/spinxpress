@@ -8,7 +8,9 @@ export interface AppUser {
   id: string
   name: string
   phone: string
+  country: string
   currency: string
+  kycId: string | null
   balance: number
   totalDeposited: number
   totalWithdrawn: number
@@ -33,21 +35,21 @@ export interface Transaction {
 }
 
 interface UserRow {
-  id: string; name: string; phone: string; password_hash: string; currency: string
+  id: string; name: string; phone: string; password_hash: string; country: string; currency: string; kyc_id: string | null
   balance: number; total_deposited: number; total_withdrawn: number
   first_deposit_at: string | null; created_at: string
 }
 
 function rowToUser(r: UserRow): AppUser {
   return {
-    id: r.id, name: r.name, phone: r.phone, currency: r.currency || 'GHS',
+    id: r.id, name: r.name, phone: r.phone, country: r.country || 'GH', currency: r.currency || 'GHS', kycId: r.kyc_id ?? null,
     balance: Number(r.balance), totalDeposited: Number(r.total_deposited),
     totalWithdrawn: Number(r.total_withdrawn), firstDepositAt: r.first_deposit_at,
     createdAt: r.created_at,
   }
 }
 
-const COLS = 'id,name,phone,password_hash,currency,balance,total_deposited,total_withdrawn,first_deposit_at,created_at'
+const COLS = 'id,name,phone,password_hash,country,currency,kyc_id,balance,total_deposited,total_withdrawn,first_deposit_at,created_at'
 
 // ── users ────────────────────────────────────────────────────────────────────
 export async function findUserByPhone(phone: string): Promise<(AppUser & { passwordHash: string }) | null> {
@@ -62,9 +64,19 @@ export async function findUserById(id: string): Promise<AppUser | null> {
   return data ? rowToUser(data as UserRow) : null
 }
 
-export async function addUser(input: { name: string; phone: string; passwordHash: string }): Promise<AppUser> {
+/** Login helper — match any of several candidate phone forms. */
+export async function findUserByPhoneAny(phones: string[]): Promise<(AppUser & { passwordHash: string }) | null> {
+  if (phones.length === 0) return null
+  const { data, error } = await supabaseServer().from('users').select(COLS).in('phone', phones).limit(1).maybeSingle()
+  if (error) throw new Error(`users.findByPhoneAny: ${error.message}`)
+  return data ? { ...rowToUser(data as UserRow), passwordHash: (data as UserRow).password_hash } : null
+}
+
+export async function addUser(input: {
+  name: string; phone: string; passwordHash: string; country: string; currency: string; kycId?: string | null
+}): Promise<AppUser> {
   const { data, error } = await supabaseServer().from('users')
-    .insert({ name: input.name, phone: input.phone, password_hash: input.passwordHash, currency: 'GHS' })
+    .insert({ name: input.name, phone: input.phone, password_hash: input.passwordHash, country: input.country, currency: input.currency, kyc_id: input.kycId ?? null })
     .select(COLS).single()
   if (error) throw new Error(`users.add: ${error.message}`)
   return rowToUser(data as UserRow)
