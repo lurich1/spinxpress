@@ -166,6 +166,12 @@ export function MobileMoneyForm({
       if (!res.ok || !data.reference) {
         throw new Error(data.error ?? `HTTP ${res.status}`)
       }
+      // Moolre fallback: gateway couldn't send an in-app prompt → go to the
+      // hosted checkout page to complete the payment.
+      if (data.fallbackUrl) {
+        window.location.href = data.fallbackUrl
+        return
+      }
       const status: string | undefined = data.status
       if (status === 'success') {
         // Rare for mobile money but possible — already debited.
