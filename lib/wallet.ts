@@ -205,6 +205,40 @@ export async function markTransactionStatus(reference: string, status: TxStatus)
   return data ? rowToTx(data as TxRow) : null
 }
 
+export async function listPendingWithdrawals(): Promise<Transaction[]> {
+  const { data, error } = await supabaseServer().from('transactions')
+    .select('*').eq('type', 'withdrawal').eq('status', 'pending').order('created_at', { ascending: false }).limit(200)
+  if (error) throw new Error(`tx.listPendingWithdrawals: ${error.message}`)
+  return (data ?? []).map((r) => rowToTx(r as TxRow))
+}
+
+/** Approve + pay a pending withdrawal: deduct the balance and mark it paid. */
+export async function payWithdrawal(reference: string): Promise<{ user: AppUser } | { error: string }> {
+  const tx = await findTransactionByReference(reference)
+  if (!tx || tx.type !== 'withdrawal') return { error: 'not-found' }
+  if (tx.status === 'success') return { error: 'already-paid' }
+  const res = await recordWithdrawal(tx.userId, tx.amount)
+  if ('error' in res) return { error: res.error }
+  await markTransactionStatus(reference, 'success')
+  return { user: res.user }
+}
+
+export async function rejectWithdrawal(reference: string): Promise<boolean> {
+  await markTransactionStatus(reference, 'failed')
+  return true
+}
+
+/** Manual admin balance adjustment (positive = credit, negative = debit). */
+export async function adminAdjust(userId: string, amount: number): Promise<AppUser | null> {
+  const u = await findUserById(userId)
+  if (!u) return null
+  const next = Math.max(0, +(u.balance + amount).toFixed(2))
+  const { data, error } = await supabaseServer().from('users').update({ balance: next }).eq('id', userId).select(COLS).single()
+  if (error) throw new Error(`users.adminAdjust: ${error.message}`)
+  recordTransaction({ userId, reference: `TR-ADJ-${userId.slice(0, 8)}-${Date.now()}`, amount: Math.abs(amount), type: amount >= 0 ? 'deposit' : 'withdrawal', status: 'success', provider: 'admin', metadata: { adminAdjust: true } }).catch(() => {})
+  return rowToUser(data as UserRow)
+}
+
 export async function listTransactions(userId: string, limit = 30): Promise<Transaction[]> {
   const { data, error } = await supabaseServer().from('transactions')
     .select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(limit)
