@@ -87,7 +87,17 @@ export async function addUser(input: {
   name: string; phone: string; passwordHash: string; country: string; currency: string; kycId?: string | null
 }): Promise<AppUser> {
   const { data, error } = await supabaseServer().from('users')
-    .insert({ name: input.name, phone: input.phone, password_hash: input.passwordHash, country: input.country, currency: input.currency, kyc_id: input.kycId ?? null })
+    .insert({
+      name: input.name,
+      phone: input.phone,
+      // The shared Supabase table has a NOT-NULL `email`; we auth by phone, so
+      // synthesize a stable placeholder (unique because phone is unique).
+      email: `${input.phone}@towerrush.local`,
+      password_hash: input.passwordHash,
+      country: input.country,
+      currency: input.currency,
+      kyc_id: input.kycId ?? null,
+    })
     .select(COLS).single()
   if (error) throw new Error(`users.add: ${error.message}`)
   return rowToUser(data as UserRow)
