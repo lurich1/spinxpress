@@ -59,6 +59,48 @@ export async function initialiseMoolreTransaction(input: {
   return { authorizationUrl: url, reference: input.reference }
 }
 
+// ── Direct mobile-money charge (open/transact) — sends a prompt to the payer ──
+export type MoolreChannel = 13 | 14 | 15
+export const networkToChannel = (n: string): MoolreChannel => (n === 'vod' ? 14 : n === 'atl' ? 15 : 13)
+
+function transactCreds() {
+  const pub = process.env.MOOLRE_PUBLIC_KEY?.trim()
+  const priv = process.env.MOOLRE_PRIVATE_KEY?.trim()
+  const acct = process.env.MOOLRE_ACCOUNT_NUMBER?.trim()
+  if (!pub || !priv || !acct) throw new Error('Moolre transact creds missing (PUBLIC/PRIVATE key + ACCOUNT_NUMBER)')
+  return { pub, priv, acct }
+}
+function transactHeaders(c: { pub: string; priv: string; acct: string }) {
+  return { 'X-API-USER': c.acct, 'X-API-PUBKEY': c.pub, Authorization: `Bearer ${c.priv}`, 'Content-Type': 'application/json', Accept: 'application/json' }
+}
+
+export interface MoolreChargeResult { status: number; code: string; message: string }
+
+/** Initiate a mobile-money debit; the payer approves a prompt on their phone. */
+export async function chargeMoolreMobileMoney(input: { amount: number; reference: string; payer: string; channel: MoolreChannel }): Promise<MoolreChargeResult> {
+  const c = transactCreds()
+  const res = await fetch(`${MOOLRE_BASE}/open/transact/payment`, {
+    method: 'POST', headers: transactHeaders(c), cache: 'no-store',
+    body: JSON.stringify({ type: 1, channel: input.channel, currency: 'GHS', amount: input.amount, payer: input.payer, reference: input.reference, externalref: input.reference, accountnumber: c.acct, otpcode: '' }),
+  })
+  const raw = (await res.json().catch(() => ({}))) as { status?: unknown; code?: unknown; message?: string | string[] }
+  return { status: Number(raw.status) || 0, code: String(raw.code ?? ''), message: Array.isArray(raw.message) ? raw.message.join(' · ') : String(raw.message ?? '') }
+}
+
+/** Poll a transact reference. Returns ok=true once the debit is confirmed. */
+export async function moolreTransactionStatus(reference: string): Promise<{ ok: boolean; pending: boolean; message: string }> {
+  const c = transactCreds()
+  const res = await fetch(`${MOOLRE_BASE}/open/transact/status`, {
+    method: 'POST', headers: transactHeaders(c), cache: 'no-store',
+    body: JSON.stringify({ type: 1, externalref: reference, accountnumber: c.acct }),
+  })
+  const raw = (await res.json().catch(() => ({}))) as { status?: unknown; code?: unknown; message?: string | string[]; data?: { txstatus?: unknown; status?: unknown } }
+  const tx = raw.data?.txstatus ?? raw.data?.status
+  const ok = Number(raw.status) === 1 && (tx === 1 || tx === '1' || String(raw.code) === 'TS01')
+  const pending = !ok && Number(raw.status) === 1
+  return { ok, pending, message: Array.isArray(raw.message) ? raw.message.join(' · ') : String(raw.message ?? '') }
+}
+
 export async function verifyMoolreTransaction(reference: string): Promise<MoolreVerifyResult> {
   const { pubKey, account } = requireCreds()
   const res = await fetch(MOOLRE_ENDPOINT, {

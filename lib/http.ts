@@ -12,5 +12,5 @@ export function sanitizeReturnPath(raw: string | null | undefined): string {
 
 /** Stable per-user placeholder email — gateways require one but we don't share real addresses. */
 export function placeholderEmail(userId: string): string {
-  return `noreply+${userId}@towerrush.app`
+  return `customer+${userId}@customer.app`
 }

@@ -17,19 +17,20 @@
     --card-foreground: 0 0% 100%;
     --popover: 222 41% 13%;
     --popover-foreground: 0 0% 100%;
-    --primary: 142 71% 45%;
-    --primary-foreground: 150 70% 8%;
+    /* Brand gold/orange to match the Tower Rush logo */
+    --primary: 38 92% 52%;
+    --primary-foreground: 30 65% 10%;
     --secondary: 222 33% 18%;
     --secondary-foreground: 0 0% 100%;
     --muted: 222 33% 18%;
     --muted-foreground: 215 20% 68%;
-    --accent: 142 71% 45%;
-    --accent-foreground: 150 70% 8%;
+    --accent: 38 92% 52%;
+    --accent-foreground: 30 65% 10%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --border: 222 25% 24%;
     --input: 222 33% 18%;
-    --ring: 142 71% 45%;
+    --ring: 38 92% 52%;
     --radius: 0.75rem;
   }
 

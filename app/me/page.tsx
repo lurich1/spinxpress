@@ -145,20 +145,20 @@ function WalletInner() {
               </div>
             </div>
 
-            {method !== 'momo' && (
+            {!method && (
               <div className="grid gap-2">
-                <Button onClick={() => startRedirectDeposit('moolre')} disabled={depBusy} className="h-12 font-bold">
-                  {depBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Smartphone className="w-4 h-4 mr-1" /> Pay with Mobile Money</>}
-                </Button>
-                <Button onClick={() => startRedirectDeposit('card')} disabled={depBusy} variant="secondary" className="h-12 font-bold"><CreditCard className="w-4 h-4 mr-1" /> Pay with Card</Button>
+                <Button onClick={() => setMethod('moolre')} className="h-12 font-bold"><Smartphone className="w-4 h-4 mr-1" /> Pay with Mobile Money</Button>
+                <Button onClick={() => startRedirectDeposit('card')} disabled={depBusy} variant="secondary" className="h-12 font-bold">{depBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-4 h-4 mr-1" /> Pay with Card</>}</Button>
                 <button type="button" onClick={() => setMethod('momo')} className="text-[11px] text-muted-foreground hover:text-foreground mt-1">Or pay with Paystack MoMo prompt</button>
               </div>
             )}
 
-            {method === 'momo' && userId && (
+            {(method === 'moolre' || method === 'momo') && userId && (
               <div>
                 <MobileMoneyForm
                   userId={userId} amount={amount} currency="GHS" defaultPhone={profile.phone} purpose="deposit"
+                  startUrl={method === 'moolre' ? '/api/payments/moolre/charge' : '/api/payments/paystack/momo/start'}
+                  statusUrl={method === 'moolre' ? '/api/payments/moolre/status' : '/api/payments/paystack/momo/status'}
                   onSuccess={() => { setMethod(null); setNotice('Deposit successful — balance updated.'); load(userId) }}
                   onSwitchToCard={() => { setMethod(null); startRedirectDeposit('card') }}
                 />

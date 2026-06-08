@@ -29,6 +29,9 @@ interface MobileMoneyFormProps {
   currency: string
   defaultPhone?: string | null
   purpose: 'deposit' | 'verification'
+  /** Endpoints — default to Paystack MoMo; pass Moolre URLs to use Moolre. */
+  startUrl?: string
+  statusUrl?: string
   /** Called when the charge resolves successfully (after server credit). */
   onSuccess: () => void
   /** Optional: surface a fallback to the card flow. */
@@ -46,6 +49,8 @@ export function MobileMoneyForm({
   currency,
   defaultPhone,
   purpose,
+  startUrl = '/api/payments/paystack/momo/start',
+  statusUrl = '/api/payments/paystack/momo/status',
   onSuccess,
   onSwitchToCard,
 }: MobileMoneyFormProps) {
@@ -78,7 +83,7 @@ export function MobileMoneyForm({
       if (cancelled) return
       try {
         const res = await fetch(
-          `/api/payments/paystack/momo/status?reference=${encodeURIComponent(phase.reference)}`,
+          `${statusUrl}?reference=${encodeURIComponent(phase.reference)}`,
           { cache: 'no-store' },
         )
         const data = await res.json().catch(() => ({}))
@@ -146,7 +151,7 @@ export function MobileMoneyForm({
     }
     setSubmitting(true)
     try {
-      const res = await fetch('/api/payments/paystack/momo/start', {
+      const res = await fetch(startUrl, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
