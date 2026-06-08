@@ -61,6 +61,14 @@ function WalletInner() {
     load(id)
   }, [router, load])
 
+  // Auto-refresh so a deposit credited by the Moolre webhook shows up without
+  // a manual reload.
+  useEffect(() => {
+    if (!userId) return
+    const t = setInterval(() => load(userId), 8000)
+    return () => clearInterval(t)
+  }, [userId, load])
+
   // payment redirect result (?paystack=/?moolre=)
   useEffect(() => {
     const ps = search.get('paystack'); const mo = search.get('moolre')
