@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Bundled game fonts (served from /public/fonts) */
+@font-face { font-family: "RubikRegular"; src: url("/fonts/RubikRegular/RubikRegular.woff") format("woff"); font-display: swap; }
+@font-face { font-family: "RubikMedium"; src: url("/fonts/RubikMedium/RubikMedium.woff") format("woff"); font-display: swap; }
+@font-face { font-family: "RubikBold"; src: url("/fonts/RubikBold/RubikBold.woff") format("woff"); font-display: swap; }
+@font-face { font-family: "RubikBlack"; src: url("/fonts/RubikBlack/RubikBlack.woff") format("woff"); font-display: swap; }
+
+/* shadcn/ui design tokens — dark green theme to match the game */
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 0 0% 100%;
+    --card: 222 41% 13%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 41% 13%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 150 70% 8%;
+    --secondary: 222 33% 18%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 222 33% 18%;
+    --muted-foreground: 215 20% 68%;
+    --accent: 142 71% 45%;
+    --accent-foreground: 150 70% 8%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 25% 24%;
+    --input: 222 33% 18%;
+    --ring: 142 71% 45%;
+    --radius: 0.75rem;
+  }
+
+  * { border-color: hsl(var(--border)); -webkit-tap-highlight-color: transparent; }
+  body { background: #0e1726; color: hsl(var(--foreground)); -webkit-font-smoothing: antialiased; }
+}
+
+@layer components {
+  .text-eyebrow { @apply text-[10px] font-bold uppercase tracking-wide; }
+}
+
+/* Bonus banner pop-in (keeps the element horizontally centred while scaling) */
+@keyframes tr-pop {
+  0%   { transform: translateX(-50%) scale(0.5); opacity: 0; }
+  60%  { transform: translateX(-50%) scale(1.12); opacity: 1; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+.tr-pop { animation: tr-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both; }

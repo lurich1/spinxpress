@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Tower Rush</title>
+<link rel="stylesheet" href="fonts/index.css" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="game">
+    <canvas id="scene"></canvas>
+
+    <!-- Top header -->
+    <header id="header">
+      <img id="logo" src="images/bajjjs/desktop/logo.webp" alt="Tower Rush" />
+      <div id="balanceBox">
+        <span class="lbl">BALANCE</span>
+        <span id="balance">1,000.00</span>
+        <span class="cur">GHS</span>
+      </div>
+    </header>
+
+    <!-- Recent results history -->
+    <div id="history"></div>
+
+    <!-- Center multiplier readout -->
+    <div id="multiplierWrap">
+      <div id="multiplier">1.00x</div>
+      <div id="statusMsg"></div>
+    </div>
+
+    <!-- Bottom control panel -->
+    <div id="panel">
+      <div id="betGroup">
+        <div id="betInput">
+          <button class="step" id="betMinus" aria-label="decrease">&minus;</button>
+          <input id="betValue" type="text" inputmode="decimal" value="100" />
+          <button class="step" id="betPlus" aria-label="increase">+</button>
+        </div>
+        <div id="quickBtns">
+          <button class="quick" id="allIn">ALL IN</button>
+          <button class="quick" id="timesTwo">x2</button>
+        </div>
+      </div>
+      <button id="actionBtn" class="build">BUILD</button>
+    </div>
+
+    <!-- Result popup -->
+    <div id="popup" class="hidden">
+      <div id="popupCard">
+        <div id="popupTitle">YOU WON</div>
+        <div id="popupAmount">0.00</div>
+        <div id="popupSub">GHS</div>
+        <button id="popupClose">CONTINUE</button>
+      </div>
+    </div>
+
+    <!-- Sound toggle -->
+    <button id="soundToggle" title="Sound">&#128266;</button>
+  </div>
+
+  <audio id="bgm" src="sounds/towerrush/background.mp3" loop></audio>
+
+  <script src="js/game.js"></script>
+</body>
+</html>

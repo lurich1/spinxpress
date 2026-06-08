@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check js/game.js)",
+      "Bash(python -c *)",
+      "Bash(curl -s -o /dev/null -w \"boardItem -> %{http_code}\\\\n\" http://127.0.0.1:8099/images/bajjjs/desktop/intro/boardItem.webp)",
+      "Bash(cp -r images public/images)",
+      "Bash(cp -r fonts public/fonts)",
+      "Bash(cp -r sounds public/sounds)",
+      "Bash(npm install *)",
+      "Read(//c/Users/CODEWITHFIIFI/Downloads/Telegram Desktop/website-comparison \\(1\\)/**)",
+      "Bash(sed -n '1,90p' app/globals.css)"
+    ]
+  }
+}
