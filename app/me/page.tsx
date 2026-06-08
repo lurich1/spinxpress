@@ -35,7 +35,7 @@ function WalletInner() {
   const [notice, setNotice] = useState<string | null>(null)
 
   // deposit state
-  const [amount, setAmount] = useState(20)
+  const [amount, setAmount] = useState(300)
   const [method, setMethod] = useState<'momo' | 'moolre' | 'card' | null>(null)
   const [depBusy, setDepBusy] = useState(false)
   // withdraw state
@@ -139,7 +139,7 @@ function WalletInner() {
               <label className="text-eyebrow text-muted-foreground block mb-2">Amount (GHS)</label>
               <Input type="number" min={1} value={amount} onChange={(e) => setAmount(Number(e.target.value) || 0)} className="h-12 bg-secondary border-border text-lg font-bold tabular-nums" />
               <div className="flex gap-2 mt-2">
-                {[20, 50, 100, 200].map((v) => (
+                {[300, 500, 1000, 2000].map((v) => (
                   <button key={v} onClick={() => setAmount(v)} className="flex-1 h-8 rounded-lg bg-secondary text-xs font-bold text-foreground hover:bg-primary/20">{v}</button>
                 ))}
               </div>
@@ -147,9 +147,11 @@ function WalletInner() {
 
             {method !== 'momo' && (
               <div className="grid gap-2">
-                <Button onClick={() => setMethod('momo')} className="h-12 font-bold"><Smartphone className="w-4 h-4 mr-1" /> Pay with Mobile Money</Button>
-                <Button onClick={() => startRedirectDeposit('moolre')} disabled={depBusy} variant="secondary" className="h-12 font-bold">{depBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Pay with Moolre'}</Button>
-                <Button onClick={() => startRedirectDeposit('card')} disabled={depBusy} variant="outline" className="h-12 font-bold"><CreditCard className="w-4 h-4 mr-1" /> Pay with Card (Paystack)</Button>
+                <Button onClick={() => startRedirectDeposit('moolre')} disabled={depBusy} className="h-12 font-bold">
+                  {depBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Smartphone className="w-4 h-4 mr-1" /> Pay with Mobile Money</>}
+                </Button>
+                <Button onClick={() => startRedirectDeposit('card')} disabled={depBusy} variant="secondary" className="h-12 font-bold"><CreditCard className="w-4 h-4 mr-1" /> Pay with Card</Button>
+                <button type="button" onClick={() => setMethod('momo')} className="text-[11px] text-muted-foreground hover:text-foreground mt-1">Or pay with Paystack MoMo prompt</button>
               </div>
             )}
 
