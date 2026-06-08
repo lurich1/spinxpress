@@ -107,7 +107,7 @@ function WalletInner() {
     <div className="min-h-screen pb-10" style={{ background: '#0e1726' }}>
       <header className="h-14 px-4 flex items-center justify-between border-b border-border bg-card/60 sticky top-0 z-10 backdrop-blur">
         <Link href="/games/tower-rush" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm"><ArrowLeft className="w-4 h-4" /> Game</Link>
-        <span className="text-sm font-bold text-foreground">My Wallet</span>
+        <span className="text-sm font-bold">My Wallet</span>
         <button onClick={logout} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-xs"><LogOut className="w-4 h-4" /> Logout</button>
       </header>
 
@@ -137,7 +137,7 @@ function WalletInner() {
           <div className="mt-4 rounded-2xl bg-card border border-border p-4 space-y-4">
             <div>
               <label className="text-eyebrow text-muted-foreground block mb-2">Amount (GHS)</label>
-              <Input type="number" min={1} value={amount} onChange={(e) => setAmount(Number(e.target.value) || 0)} className="h-12 bg-secondary border-border text-lg font-bold tabular-nums" />
+              <Input type="number" min={1} value={amount} onChange={(e) => setAmount(Number(e.target.value) || 0)} className="h-12 text-lg font-bold tabular-nums" />
               <div className="flex gap-2 mt-2">
                 {[300, 500, 1000, 2000].map((v) => (
                   <button key={v} onClick={() => setAmount(v)} className="flex-1 h-8 rounded-lg bg-secondary text-xs font-bold text-foreground hover:bg-primary/20">{v}</button>
@@ -176,7 +176,7 @@ function WalletInner() {
               <div className="rounded-lg bg-secondary/60 border border-border p-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Account verification</span>
-                  <span className="font-bold text-foreground">{profile.verificationStep}/{profile.verificationTarget}</span>
+                  <span className="font-bold">{profile.verificationStep}/{profile.verificationTarget}</span>
                 </div>
                 <div className="mt-2 h-1.5 rounded-full bg-black/30 overflow-hidden">
                   <div className="h-full bg-primary" style={{ width: `${(profile.verificationStep / profile.verificationTarget) * 100}%` }} />
@@ -195,7 +195,7 @@ function WalletInner() {
             {!profile.hasFirstDeposit && <p className="text-xs text-muted-foreground">Make a deposit before you can withdraw.</p>}
             <div>
               <label className="text-eyebrow text-muted-foreground block mb-2">Amount (GHS)</label>
-              <Input type="number" min={1} value={wAmount || ''} onChange={(e) => setWAmount(Number(e.target.value) || 0)} className="h-12 bg-secondary border-border text-lg font-bold tabular-nums" placeholder="0.00" />
+              <Input type="number" min={1} value={wAmount || ''} onChange={(e) => setWAmount(Number(e.target.value) || 0)} className="h-12 text-lg font-bold tabular-nums" placeholder="0.00" />
             </div>
             <div>
               <label className="text-eyebrow text-muted-foreground block mb-2">Network</label>
@@ -207,7 +207,7 @@ function WalletInner() {
             </div>
             <div>
               <label className="text-eyebrow text-muted-foreground block mb-2">Mobile-money number</label>
-              <Input value={wPhone} onChange={(e) => setWPhone(e.target.value)} type="tel" inputMode="numeric" placeholder="0244XXXXXXX" className="h-12 bg-secondary border-border font-mono" />
+              <Input value={wPhone} onChange={(e) => setWPhone(e.target.value)} type="tel" inputMode="numeric" placeholder="0244XXXXXXX" className="h-12 font-mono" />
             </div>
             <Button type="submit" disabled={wBusy || !profile.hasFirstDeposit} className="w-full h-12 font-bold">{wBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : `Withdraw GHS ${fmt(wAmount || 0)}`}</Button>
           </form>

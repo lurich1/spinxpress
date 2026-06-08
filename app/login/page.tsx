@@ -38,17 +38,17 @@ export default function LoginPage() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/images/bajjjs/desktop/logo.webp" alt="Tower Rush" className="w-32 h-auto mb-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" />
       <div className="w-full max-w-sm rounded-2xl bg-card/85 backdrop-blur-md border border-border/60 p-6 shadow-card-hover">
-        <h1 className="text-xl font-black text-foreground">Welcome back</h1>
+        <h1 className="text-xl font-black">Welcome back</h1>
         <p className="text-sm text-muted-foreground mt-1">Log in with your phone and password.</p>
 
         <form onSubmit={submit} className="mt-5 space-y-3">
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" inputMode="numeric" placeholder="0244XXXXXXX" className="pl-9 h-12 bg-secondary border-border font-mono" required />
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" inputMode="numeric" placeholder="0244XXXXXXX" className="pl-9 h-12 font-mono" required />
           </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" className="pl-9 h-12 bg-secondary border-border" required />
+            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" className="pl-9 h-12" required />
           </div>
 
           {error && <p className="text-xs text-destructive font-medium">{error}</p>}

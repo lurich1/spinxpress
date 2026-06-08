@@ -44,12 +44,12 @@ export default function RegisterPage() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/images/bajjjs/desktop/logo.webp" alt="Tower Rush" className="w-32 h-auto mb-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" />
       <div className="w-full max-w-sm rounded-2xl bg-card/85 backdrop-blur-md border border-border/60 p-6 shadow-card-hover">
-        <h1 className="text-xl font-black text-foreground">Create account</h1>
+        <h1 className="text-xl font-black">Create account</h1>
         <p className="text-sm text-muted-foreground mt-1">Register to play for real.</p>
 
         <form onSubmit={submit} className="mt-5 space-y-3">
           <Field icon={<User className="w-4 h-4" />}>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="pl-9 h-12 bg-secondary border-border text-foreground" required />
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="pl-9 h-12" required />
           </Field>
 
           {/* Country */}
@@ -67,18 +67,18 @@ export default function RegisterPage() {
           </div>
 
           <Field icon={<Phone className="w-4 h-4" />}>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" inputMode="numeric" placeholder={cfg.phonePlaceholder} className="pl-9 h-12 bg-secondary border-border font-mono text-foreground" required />
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" inputMode="numeric" placeholder={cfg.phonePlaceholder} className="pl-9 h-12 font-mono" required />
           </Field>
 
           {cfg.requiresKyc && (
             <Field icon={<IdCard className="w-4 h-4" />}>
-              <Input value={kyc} onChange={(e) => setKyc(e.target.value)} placeholder={cfg.kycPlaceholder} className="pl-9 h-12 bg-secondary border-border font-mono text-foreground" required />
+              <Input value={kyc} onChange={(e) => setKyc(e.target.value)} placeholder={cfg.kycPlaceholder} className="pl-9 h-12 font-mono" required />
             </Field>
           )}
           {cfg.requiresKyc && <p className="text-[11px] text-muted-foreground -mt-1">{cfg.kycLabel}</p>}
 
           <Field icon={<Lock className="w-4 h-4" />}>
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password (min 6)" className="pl-9 h-12 bg-secondary border-border text-foreground" required />
+            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password (min 6)" className="pl-9 h-12" required />
           </Field>
 
           {error && <p className="text-xs text-destructive font-medium">{error}</p>}

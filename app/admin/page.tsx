@@ -63,7 +63,7 @@ export default function AdminPage() {
         <form onSubmit={(e) => { e.preventDefault(); load(pw) }} className="w-full max-w-sm rounded-2xl bg-card border border-border p-6">
           <div className="flex items-center gap-2 text-foreground font-black text-lg"><ShieldCheck className="w-5 h-5 text-primary" /> Admin</div>
           <p className="text-sm text-muted-foreground mt-1 mb-4">Enter the admin password.</p>
-          <Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Password" className="h-12 bg-secondary border-border" />
+          <Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Password" className="h-12" />
           {error && <p className="text-xs text-destructive mt-2">{error}</p>}
           <Button type="submit" disabled={busy} className="w-full h-12 font-bold mt-3">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enter'}</Button>
         </form>
@@ -106,7 +106,7 @@ export default function AdminPage() {
               <div key={w.reference} className="rounded-xl bg-card border border-border p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-bold text-foreground">{w.userName} <span className="text-xs text-muted-foreground font-normal">{w.userPhone}</span></div>
+                    <div className="font-bold">{w.userName} <span className="text-xs text-muted-foreground font-normal">{w.userPhone}</span></div>
                     <div className="text-xs text-muted-foreground mt-0.5">To {w.network.toUpperCase()} {w.phone} · Bal GHS {fmt(w.userBalance)}</div>
                   </div>
                   <div className="text-lg font-black text-foreground tabular-nums shrink-0">GHS {fmt(w.amount)}</div>
