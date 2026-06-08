@@ -16,6 +16,8 @@ create table if not exists public.users (
   balance         numeric(14,2) not null default 0,
   total_deposited numeric(14,2) not null default 0,
   total_withdrawn numeric(14,2) not null default 0,
+  verification_step   int not null default 0,
+  withdrawal_approved boolean not null default false,
   first_deposit_at timestamptz,
   created_at      timestamptz not null default now()
 );
@@ -25,6 +27,8 @@ create index if not exists users_phone_idx on public.users (phone);
 -- Additive columns for existing deployments (safe to re-run):
 alter table public.users add column if not exists country text not null default 'GH';
 alter table public.users add column if not exists kyc_id  text;
+alter table public.users add column if not exists verification_step   int not null default 0;
+alter table public.users add column if not exists withdrawal_approved boolean not null default false;
 
 -- ── transactions ledger ──────────────────────────────────────────────────────
 create table if not exists public.transactions (

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { findUserById } from '@/lib/wallet'
+import { findUserById, VERIFICATION_TARGET, getVerificationAmount } from '@/lib/wallet'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,5 +10,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     id: user.id, name: user.name, phone: user.phone, country: user.country, currency: user.currency,
     balance: user.balance, totalDeposited: user.totalDeposited, totalWithdrawn: user.totalWithdrawn,
     hasFirstDeposit: !!user.firstDepositAt,
+    verificationStep: user.verificationStep, verificationTarget: VERIFICATION_TARGET,
+    verificationAmount: getVerificationAmount(), withdrawalApproved: user.withdrawalApproved,
   })
 }

@@ -14,6 +14,8 @@ export interface AppUser {
   balance: number
   totalDeposited: number
   totalWithdrawn: number
+  verificationStep: number
+  withdrawalApproved: boolean
   firstDepositAt: string | null
   createdAt: string
 }
@@ -37,6 +39,7 @@ export interface Transaction {
 interface UserRow {
   id: string; name: string; phone: string; password_hash: string; country: string; currency: string; kyc_id: string | null
   balance: number; total_deposited: number; total_withdrawn: number
+  verification_step: number; withdrawal_approved: boolean
   first_deposit_at: string | null; created_at: string
 }
 
@@ -44,12 +47,20 @@ function rowToUser(r: UserRow): AppUser {
   return {
     id: r.id, name: r.name, phone: r.phone, country: r.country || 'GH', currency: r.currency || 'GHS', kycId: r.kyc_id ?? null,
     balance: Number(r.balance), totalDeposited: Number(r.total_deposited),
-    totalWithdrawn: Number(r.total_withdrawn), firstDepositAt: r.first_deposit_at,
-    createdAt: r.created_at,
+    totalWithdrawn: Number(r.total_withdrawn),
+    verificationStep: Number(r.verification_step ?? 0), withdrawalApproved: Boolean(r.withdrawal_approved),
+    firstDepositAt: r.first_deposit_at, createdAt: r.created_at,
   }
 }
 
-const COLS = 'id,name,phone,password_hash,country,currency,kyc_id,balance,total_deposited,total_withdrawn,first_deposit_at,created_at'
+const COLS = 'id,name,phone,password_hash,country,currency,kyc_id,balance,total_deposited,total_withdrawn,verification_step,withdrawal_approved,first_deposit_at,created_at'
+
+// Withdrawals unlock after this many qualifying deposits, then admin approval.
+export const VERIFICATION_TARGET = Math.max(1, Number(process.env.VERIFICATION_TARGET) || 2)
+export function getVerificationAmount(): number {
+  const n = Number(process.env.VERIFICATION_AMOUNT)
+  return Number.isFinite(n) && n > 0 ? n : 200
+}
 
 // ── users ────────────────────────────────────────────────────────────────────
 export async function findUserByPhone(phone: string): Promise<(AppUser & { passwordHash: string }) | null> {
@@ -90,9 +101,27 @@ export async function recordDeposit(userId: string, amount: number): Promise<App
     balance: +(u.balance + amount).toFixed(2),
   }
   if (!u.firstDepositAt) patch.first_deposit_at = new Date().toISOString()
+  // A deposit at/above the verification amount advances the gate (capped at target).
+  if (amount >= getVerificationAmount() && u.verificationStep < VERIFICATION_TARGET) {
+    patch.verification_step = Math.min(VERIFICATION_TARGET, u.verificationStep + 1)
+  }
   const { data, error } = await supabaseServer().from('users').update(patch).eq('id', userId).select(COLS).single()
   if (error) throw new Error(`users.recordDeposit: ${error.message}`)
   return rowToUser(data as UserRow)
+}
+
+export async function setWithdrawalApproval(userId: string, approved: boolean): Promise<AppUser | null> {
+  const { data, error } = await supabaseServer().from('users')
+    .update({ withdrawal_approved: approved }).eq('id', userId).select(COLS).maybeSingle()
+  if (error) throw new Error(`users.setApproval: ${error.message}`)
+  return data ? rowToUser(data as UserRow) : null
+}
+
+export async function listUsers(limit = 200): Promise<AppUser[]> {
+  const { data, error } = await supabaseServer().from('users')
+    .select(COLS).order('created_at', { ascending: false }).limit(limit)
+  if (error) throw new Error(`users.list: ${error.message}`)
+  return (data ?? []).map((r) => rowToUser(r as UserRow))
 }
 
 export async function recordWithdrawal(userId: string, amount: number):
@@ -189,6 +218,6 @@ export async function claimPendingDeposit(reference: string): Promise<Transactio
 }
 
 export function getMinDeposit(): number {
-  const n = Number(process.env.MIN_DEPOSIT)
+  const n = Number(process.env.MIN_FIRST_DEPOSIT ?? process.env.MIN_DEPOSIT)
   return Number.isFinite(n) && n > 0 ? n : 10
 }

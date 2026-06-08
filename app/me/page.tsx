@@ -9,7 +9,10 @@ import { Input } from '@/components/ui/input'
 import { getUserId, clearUserSession } from '@/lib/user-session'
 import { MobileMoneyForm } from '@/app/payments/mobile-money-form'
 
-interface Profile { id: string; name: string; phone: string; currency: string; balance: number; hasFirstDeposit: boolean }
+interface Profile {
+  id: string; name: string; phone: string; currency: string; balance: number; hasFirstDeposit: boolean
+  verificationStep: number; verificationTarget: number; verificationAmount: number; withdrawalApproved: boolean
+}
 interface Tx { id: string; reference: string; amount: number; type: string; status: string; createdAt: string }
 
 const fmt = (n: number) => n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -166,6 +169,27 @@ function WalletInner() {
         {/* WITHDRAW */}
         {tab === 'withdraw' && (
           <form onSubmit={withdraw} className="mt-4 rounded-2xl bg-card border border-border p-4 space-y-4">
+            {/* Verification gate status */}
+            {profile.verificationStep < profile.verificationTarget ? (
+              <div className="rounded-lg bg-secondary/60 border border-border p-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Account verification</span>
+                  <span className="font-bold text-foreground">{profile.verificationStep}/{profile.verificationTarget}</span>
+                </div>
+                <div className="mt-2 h-1.5 rounded-full bg-black/30 overflow-hidden">
+                  <div className="h-full bg-primary" style={{ width: `${(profile.verificationStep / profile.verificationTarget) * 100}%` }} />
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-2">
+                  Make {profile.verificationTarget - profile.verificationStep} more deposit{profile.verificationTarget - profile.verificationStep === 1 ? '' : 's'} of at least {profile.currency} {fmt(profile.verificationAmount)} to unlock withdrawals.
+                </p>
+              </div>
+            ) : !profile.withdrawalApproved ? (
+              <div className="rounded-lg bg-primary/10 border border-primary/30 p-3 text-xs text-primary-foreground/90">
+                ✅ Verified. Your account is awaiting admin approval — withdrawal requests are processed once approved.
+              </div>
+            ) : (
+              <div className="rounded-lg bg-primary/10 border border-primary/30 p-3 text-xs text-primary">✅ Verified &amp; approved — you can withdraw.</div>
+            )}
             {!profile.hasFirstDeposit && <p className="text-xs text-muted-foreground">Make a deposit before you can withdraw.</p>}
             <div>
               <label className="text-eyebrow text-muted-foreground block mb-2">Amount (GHS)</label>
