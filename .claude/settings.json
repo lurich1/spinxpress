@@ -9,7 +9,8 @@
       "Bash(cp -r sounds public/sounds)",
       "Bash(npm install *)",
       "Read(//c/Users/CODEWITHFIIFI/Downloads/Telegram Desktop/website-comparison \\(1\\)/**)",
-      "Bash(sed -n '1,90p' app/globals.css)"
+      "Bash(sed -n '1,90p' app/globals.css)",
+      "Bash(git remote *)"
     ]
   }
 }

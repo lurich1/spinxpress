@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2, Phone, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { AuthScene } from '@/components/AuthScene'
 import { saveUserSession } from '@/lib/user-session'
 
 export default function LoginPage() {
@@ -33,10 +34,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8" style={{ background: '#0e1726' }}>
+    <AuthScene>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/images/bajjjs/desktop/logo.webp" alt="Tower Rush" className="w-28 h-auto mb-6 drop-shadow-lg" />
-      <div className="w-full max-w-sm rounded-2xl bg-card border border-border p-6 shadow-card-hover">
+      <img src="/images/bajjjs/desktop/logo.webp" alt="Tower Rush" className="w-32 h-auto mb-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" />
+      <div className="w-full max-w-sm rounded-2xl bg-card/85 backdrop-blur-md border border-border/60 p-6 shadow-card-hover">
         <h1 className="text-xl font-black text-foreground">Welcome back</h1>
         <p className="text-sm text-muted-foreground mt-1">Log in with your phone and password.</p>
 
@@ -61,7 +62,7 @@ export default function LoginPage() {
           New here? <Link href="/register" className="text-primary font-semibold hover:underline">Create account</Link>
         </p>
       </div>
-      <Link href="/games/tower-rush" className="text-xs text-muted-foreground mt-6 hover:text-foreground">← Back to game</Link>
-    </div>
+      <Link href="/games/tower-rush" className="text-xs text-white/70 mt-6 hover:text-white">← Back to game</Link>
+    </AuthScene>
   )
 }
