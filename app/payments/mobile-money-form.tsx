@@ -29,7 +29,7 @@ interface MobileMoneyFormProps {
   currency: string
   defaultPhone?: string | null
   purpose: 'deposit' | 'verification'
-  /** Endpoints — default to Paystack MoMo; pass Moolre URLs to use Moolre. */
+  /** Endpoints — default to Paystack MoMo. */
   startUrl?: string
   statusUrl?: string
   /** Called when the charge resolves successfully (after server credit). */
@@ -165,12 +165,6 @@ export function MobileMoneyForm({
       const data = await res.json().catch(() => ({}))
       if (!res.ok || !data.reference) {
         throw new Error(data.error ?? `HTTP ${res.status}`)
-      }
-      // Moolre fallback: gateway couldn't send an in-app prompt → go to the
-      // hosted checkout page to complete the payment.
-      if (data.fallbackUrl) {
-        window.location.href = data.fallbackUrl
-        return
       }
       const status: string | undefined = data.status
       if (status === 'success') {

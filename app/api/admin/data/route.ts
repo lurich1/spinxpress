@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { listUsers, listPendingWithdrawals, VERIFICATION_TARGET } from '@/lib/wallet'
+import { listUsers, listPendingWithdrawals, listPendingDeposits, VERIFICATION_TARGET } from '@/lib/wallet'
 import { isAdmin } from '@/lib/admin-auth'
 
 export const dynamic = 'force-dynamic'
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: Request) {
   if (!isAdmin(request)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  const [users, pending] = await Promise.all([listUsers(), listPendingWithdrawals()])
+  const [users, pending, pendingDep] = await Promise.all([listUsers(), listPendingWithdrawals(), listPendingDeposits()])
   const byId = new Map(users.map((u) => [u.id, u]))
 
   const stats = {
@@ -16,6 +16,7 @@ export async function GET(request: Request) {
     totalWithdrawn: +users.reduce((s, u) => s + u.totalWithdrawn, 0).toFixed(2),
     totalBalance: +users.reduce((s, u) => s + u.balance, 0).toFixed(2),
     pendingWithdrawals: pending.length,
+    pendingDeposits: pendingDep.length,
   }
 
   return NextResponse.json({
@@ -26,6 +27,14 @@ export async function GET(request: Request) {
       balance: u.balance, totalDeposited: u.totalDeposited, totalWithdrawn: u.totalWithdrawn,
       verificationStep: u.verificationStep, withdrawalApproved: u.withdrawalApproved, createdAt: u.createdAt,
     })),
+    pendingDeposits: pendingDep.map((t) => {
+      const u = byId.get(t.userId)
+      return {
+        reference: t.reference, userId: t.userId, amount: t.amount, createdAt: t.createdAt,
+        momoRef: (t.metadata?.momoRef as string) ?? '', payerPhone: (t.metadata?.payerPhone as string) ?? '',
+        userName: u?.name ?? '—', userPhone: u?.phone ?? '', userBalance: u?.balance ?? 0,
+      }
+    }),
     pendingWithdrawals: pending.map((t) => {
       const u = byId.get(t.userId)
       return {

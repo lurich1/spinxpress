@@ -212,6 +212,32 @@ export async function listPendingWithdrawals(): Promise<Transaction[]> {
   return (data ?? []).map((r) => rowToTx(r as TxRow))
 }
 
+/** Manual mobile-money deposits awaiting admin verification. */
+export async function listPendingDeposits(): Promise<Transaction[]> {
+  const { data, error } = await supabaseServer().from('transactions')
+    .select('*').eq('type', 'deposit').eq('provider', 'manual').eq('status', 'pending')
+    .order('created_at', { ascending: false }).limit(200)
+  if (error) throw new Error(`tx.listPendingDeposits: ${error.message}`)
+  return (data ?? []).map((r) => rowToTx(r as TxRow))
+}
+
+/** Approve a manual deposit: atomically claim it, then credit the wallet. */
+export async function approveDeposit(reference: string): Promise<{ user: AppUser } | { error: string }> {
+  const tx = await findTransactionByReference(reference)
+  if (!tx || tx.type !== 'deposit') return { error: 'not-found' }
+  if (tx.status === 'success') return { error: 'already-credited' }
+  const claimed = await claimPendingDeposit(reference)
+  if (!claimed) return { error: 'already-credited' }
+  const user = await recordDeposit(tx.userId, tx.amount)
+  if (!user) return { error: 'user-not-found' }
+  return { user }
+}
+
+export async function rejectDeposit(reference: string): Promise<boolean> {
+  await markTransactionStatus(reference, 'failed')
+  return true
+}
+
 /** Approve + pay a pending withdrawal: deduct the balance and mark it paid. */
 export async function payWithdrawal(reference: string): Promise<{ user: AppUser } | { error: string }> {
   const tx = await findTransactionByReference(reference)

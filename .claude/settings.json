@@ -13,7 +13,10 @@
       "Bash(git remote *)",
       "Bash(curl -s -o /dev/null -w \"register -> %{http_code}\\\\n\" http://127.0.0.1:3000/register)",
       "Bash(cmd.exe /c start http://127.0.0.1:3000/register)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(nslookup www.spinxpress.casino 8.8.8.8)",
+      "Bash(curl -sI --max-time 20 https://spinxpress.casino)",
+      "Bash(curl -s -o /dev/null -w \"www -> HTTP %{http_code}\\\\n\" --max-time 20 https://www.spinxpress.casino)"
     ]
   }
 }

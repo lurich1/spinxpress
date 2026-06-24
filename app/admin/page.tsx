@@ -11,7 +11,8 @@ interface AdminUser {
   verificationStep: number; withdrawalApproved: boolean; createdAt: string
 }
 interface PendingWd { reference: string; userId: string; amount: number; createdAt: string; network: string; phone: string; userName: string; userPhone: string; userBalance: number }
-interface Stats { users: number; totalDeposited: number; totalWithdrawn: number; totalBalance: number; pendingWithdrawals: number }
+interface PendingDep { reference: string; userId: string; amount: number; createdAt: string; momoRef: string; payerPhone: string; userName: string; userPhone: string; userBalance: number }
+interface Stats { users: number; totalDeposited: number; totalWithdrawn: number; totalBalance: number; pendingWithdrawals: number; pendingDeposits: number }
 
 const KEY = 'towerrush_admin_pw'
 const fmt = (n: number) => n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -22,8 +23,9 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
   const [pending, setPending] = useState<PendingWd[]>([])
+  const [deposits, setDeposits] = useState<PendingDep[]>([])
   const [target, setTarget] = useState(2)
-  const [tab, setTab] = useState<'withdrawals' | 'users'>('withdrawals')
+  const [tab, setTab] = useState<'deposits' | 'withdrawals' | 'users'>('deposits')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,7 +35,7 @@ export default function AdminPage() {
       const res = await fetch('/api/admin/data', { headers: { 'x-admin-password': password }, cache: 'no-store' })
       if (res.status === 401) { setError('Wrong password'); setAuthed(false); localStorage.removeItem(KEY); return }
       const d = await res.json()
-      setStats(d.stats); setUsers(d.users ?? []); setPending(d.pendingWithdrawals ?? []); setTarget(d.verificationTarget ?? 2); setAuthed(true)
+      setStats(d.stats); setUsers(d.users ?? []); setPending(d.pendingWithdrawals ?? []); setDeposits(d.pendingDeposits ?? []); setTarget(d.verificationTarget ?? 2); setAuthed(true)
       localStorage.setItem(KEY, password)
     } catch (e) { setError(e instanceof Error ? e.message : String(e)) } finally { setBusy(false) }
   }, [])
@@ -49,6 +51,7 @@ export default function AdminPage() {
 
   const approve = async (userId: string, approved: boolean) => { if (await post('/api/admin/approve', { userId, approved })) load(pw) }
   const payWd = async (reference: string, action: 'pay' | 'reject') => { if (await post('/api/admin/withdraw', { reference, action })) load(pw) }
+  const reviewDep = async (reference: string, action: 'approve' | 'reject') => { if (await post('/api/admin/deposit', { reference, action })) load(pw) }
   const credit = async (userId: string) => {
     const v = prompt('Amount to credit (negative to debit):')
     if (v == null) return
@@ -92,11 +95,34 @@ export default function AdminPage() {
         )}
 
         {/* Tabs */}
-        <div className="mt-4 grid grid-cols-2 gap-1 bg-card rounded-full p-1 border border-border">
-          {([['withdrawals', `Withdrawals${pending.length ? ` (${pending.length})` : ''}`], ['users', 'Players']] as const).map(([t, label]) => (
-            <button key={t} onClick={() => setTab(t)} className={`py-2 rounded-full text-sm font-bold transition-colors ${tab === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}>{label}</button>
+        <div className="mt-4 grid grid-cols-3 gap-1 bg-card rounded-full p-1 border border-border">
+          {([['deposits', `Deposits${deposits.length ? ` (${deposits.length})` : ''}`], ['withdrawals', `Withdrawals${pending.length ? ` (${pending.length})` : ''}`], ['users', 'Players']] as const).map(([t, label]) => (
+            <button key={t} onClick={() => setTab(t)} className={`py-2 rounded-full text-xs sm:text-sm font-bold transition-colors ${tab === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}>{label}</button>
           ))}
         </div>
+
+        {/* Pending deposits (manual mobile money) */}
+        {tab === 'deposits' && (
+          <div className="mt-3 space-y-2">
+            {deposits.length === 0 && <p className="text-center text-sm text-muted-foreground py-10">No deposits awaiting verification.</p>}
+            {deposits.map((d) => (
+              <div key={d.reference} className="rounded-xl bg-card border border-border p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-bold">{d.userName} <span className="text-xs text-muted-foreground font-normal">{d.userPhone}</span></div>
+                    <div className="text-xs text-muted-foreground mt-0.5">Paid from {d.payerPhone || '—'} · Bal GHS {fmt(d.userBalance)}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">MoMo Txn ID: <span className="font-mono text-foreground">{d.momoRef || '—'}</span></div>
+                  </div>
+                  <div className="text-lg font-black text-foreground tabular-nums shrink-0">GHS {fmt(d.amount)}</div>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Button size="sm" onClick={() => reviewDep(d.reference, 'approve')} className="flex-1"><Check className="w-4 h-4 mr-1" /> Confirm &amp; credit</Button>
+                  <Button size="sm" variant="outline" onClick={() => reviewDep(d.reference, 'reject')} className="flex-1"><X className="w-4 h-4 mr-1" /> Reject</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Pending withdrawals */}
         {tab === 'withdrawals' && (

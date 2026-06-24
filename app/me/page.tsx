@@ -7,7 +7,7 @@ import { ArrowLeft, Loader2, Wallet, ArrowDownToLine, ArrowUpFromLine, LogOut, S
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getUserId, clearUserSession } from '@/lib/user-session'
-import { MobileMoneyForm } from '@/app/payments/mobile-money-form'
+import { ManualDepositForm } from '@/app/payments/manual-deposit-form'
 
 interface Profile {
   id: string; name: string; phone: string; currency: string; balance: number; hasFirstDeposit: boolean
@@ -36,7 +36,7 @@ function WalletInner() {
 
   // deposit state
   const [amount, setAmount] = useState(300)
-  const [method, setMethod] = useState<'momo' | 'moolre' | 'card' | null>(null)
+  const [method, setMethod] = useState<'manual' | 'card' | null>(null)
   const [depBusy, setDepBusy] = useState(false)
   // withdraw state
   const [wAmount, setWAmount] = useState(0)
@@ -61,7 +61,7 @@ function WalletInner() {
     load(id)
   }, [router, load])
 
-  // Auto-refresh so a deposit credited by the Moolre webhook shows up without
+  // Auto-refresh so a deposit credited by the payment webhook shows up without
   // a manual reload.
   useEffect(() => {
     if (!userId) return
@@ -69,10 +69,9 @@ function WalletInner() {
     return () => clearInterval(t)
   }, [userId, load])
 
-  // payment redirect result (?paystack=/?moolre=)
+  // payment redirect result (?paystack=)
   useEffect(() => {
-    const ps = search.get('paystack'); const mo = search.get('moolre')
-    const status = ps ?? mo
+    const status = search.get('paystack')
     if (!status) return
     if (status === 'success' || status === 'already-credited') setNotice('Deposit successful — balance updated.')
     else setNotice(`Payment did not complete (${status}).`)
@@ -81,12 +80,11 @@ function WalletInner() {
 
   const logout = () => { clearUserSession(); router.push('/login') }
 
-  const startRedirectDeposit = async (provider: 'moolre' | 'card') => {
+  const startRedirectDeposit = async () => {
     if (!userId) return
     setError(null); setDepBusy(true)
     try {
-      const url = provider === 'moolre' ? '/api/payments/moolre/start' : '/api/payments/paystack/start'
-      const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ userId, amount, returnPath: '/me' }) })
+      const res = await fetch('/api/payments/paystack/start', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ userId, amount, returnPath: '/me' }) })
       const data = await res.json().catch(() => ({}))
       if (!res.ok || !data.url) throw new Error(data.error ?? `HTTP ${res.status}`)
       window.location.href = data.url
@@ -155,20 +153,16 @@ function WalletInner() {
 
             {!method && (
               <div className="grid gap-2">
-                <Button onClick={() => setMethod('moolre')} className="h-12 font-bold"><Smartphone className="w-4 h-4 mr-1" /> Pay with Mobile Money</Button>
-                <Button onClick={() => startRedirectDeposit('card')} disabled={depBusy} variant="secondary" className="h-12 font-bold">{depBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-4 h-4 mr-1" /> Pay with Card</>}</Button>
-                <button type="button" onClick={() => setMethod('momo')} className="text-[11px] text-muted-foreground hover:text-foreground mt-1">Or pay with Paystack MoMo prompt</button>
+                <Button onClick={() => setMethod('manual')} className="h-12 font-bold"><Smartphone className="w-4 h-4 mr-1" /> Pay with Mobile Money</Button>
+                <Button onClick={() => startRedirectDeposit()} disabled={depBusy} variant="secondary" className="h-12 font-bold">{depBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-4 h-4 mr-1" /> Pay with Card</>}</Button>
               </div>
             )}
 
-            {(method === 'moolre' || method === 'momo') && userId && (
+            {method === 'manual' && userId && (
               <div>
-                <MobileMoneyForm
-                  userId={userId} amount={amount} currency="GHS" defaultPhone={profile.phone} purpose="deposit"
-                  startUrl={method === 'moolre' ? '/api/payments/moolre/charge' : '/api/payments/paystack/momo/start'}
-                  statusUrl={method === 'moolre' ? '/api/payments/moolre/status' : '/api/payments/paystack/momo/status'}
-                  onSuccess={() => { setMethod(null); setNotice('Deposit successful — balance updated.'); load(userId) }}
-                  onSwitchToCard={() => { setMethod(null); startRedirectDeposit('card') }}
+                <ManualDepositForm
+                  userId={userId} amount={amount} currency="GHS" defaultPhone={profile.phone}
+                  onSubmitted={(msg) => { setMethod(null); setNotice(msg); load(userId) }}
                 />
                 <button onClick={() => setMethod(null)} className="mt-3 block mx-auto text-xs text-muted-foreground hover:text-foreground">← Choose another method</button>
               </div>
